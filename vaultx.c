@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-int authorize(){
+int authorize(){ //Tier 2+ level Security
     char password[50];
     char key[100];
     printf("Please Enter the password:- ");
@@ -32,7 +33,7 @@ int authorize(){
             count++;
         }
         if(count>strlen(key)) printf("Bug code 1\n");
-        if(key[i] == ',' || i == key_length-1){ //either ',' or if its the last character
+        if(key[i] == '-' || i == key_length-1){ //either ',' or if its the last character
             temp = (char)(encrypted[j]^num);
             decrypted[j] = temp; //stores the char into another string after decrypting
             num = 0;
@@ -42,9 +43,50 @@ int authorize(){
     return !(strcmp(decrypted,password));
 }
 
+void encrypter() {
+    srand(time(0)); // seed
+
+    printf("Please enter the Text you want to encrypt\n");
+    char input[500];
+    getchar(); // clear stdin
+    fgets(input, 500, stdin);
+    input[strcspn(input, "\n")] = '\0';  // remove newline
+
+    int length = strlen(input);
+
+    char encrypted[500];
+    char key[1000]; // large enough to store all keys as string
+    key[0] = '\0';  // initialize empty string
+
+    char temp_key[10];
+    for (int i = 0; i < length; i++) {
+        int r = rand() % 94 + 33; // get random printable ASCII (33–126)
+        encrypted[i] = input[i] ^ r; // XOR encryption
+
+        // Convert int r to string and append to key
+        sprintf(temp_key, "%d-", r);
+        strcat(key, temp_key);
+    }
+    encrypted[length] = '\0'; // null-terminate encrypted message
+
+    printf("The Encrypted message is: ");
+    for (int i = 0; i < length; i++) {
+        printf("%c", (encrypted[i] >= 33 && encrypted[i] <= 126) ? encrypted[i] : '.');
+    }
+    printf("\n");
+
+    printf("The Key is: %s\n", key);
+    printf("NOTE:- KEEP THIS SAFE IN CASE IT GOT LOST CANNOT BE RECOVERED\n");
+}
+
+
 int main(){
-if(authorize()){
-    printf("\nACCESS GRANTED");
+if(1){ //use authorize() later rn due to testing purpose
+    printf("\nACCESS GRANTED\n");
+    printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n");
+    int resp;
+    scanf("%d",&resp);
+    if(resp == 1) encrypter();
 }
 else{
     printf("\nACCESS DENIED");
