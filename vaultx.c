@@ -3,6 +3,15 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#define SEP 0x1F
+
+char global_key[100] = {0};
+
+typedef struct{
+    char domain[500];
+    char username[100];
+    char password[50]; //Encrypted
+}credential;
 
 int take(char inp[] , int n){
     char ch; int i = 0;
@@ -12,6 +21,52 @@ int take(char inp[] , int n){
     }
     inp[i] = '\0';
     return i;
+}
+
+void password_strength(){
+    char pass[500] = {0};
+    printf("Please enter the password:- ");
+    while(getchar()=='\n');//Clearing Buffer \n
+    take(pass,500);
+    int l = strlen(pass);int count = 0;
+    int c[4] = {0};
+    for(int i = 0 ; i<l ; i++){//here we will check if each type of character atleast occurs once or not
+        if((pass[i]>='a' && pass[i]<='z') && (c[0]==0)){
+            count++;
+            c[0]++;
+        }
+        else if((pass[i]>='A' && pass[i]<='Z') && (c[1]==0)){
+            count++;
+            c[1]++;
+        }
+        else if((pass[i]>='0' && pass[i]<='9') && (c[2]==0)){
+            count++;
+            c[2]++;
+        }
+        else if((pass[i]>=33 && pass[i]<=126) && (c[3]==0)){
+            count++;
+            c[3]++;
+        }
+        else if(pass[i]<33 || pass[i]>126) {
+            printf("Error:- Please enter the correct password\n");
+            exit(1);
+        }
+    }
+    switch(count){
+        case 1:
+            printf("\nWeak Password");
+            break;
+        case 2:
+            printf("\nMild Password");
+            break;
+        case 3:
+            printf("\nStrong Password");
+            break;
+        case 4:
+            printf("\nVery Strong Password");
+            break;
+        default: break;
+    }
 }
 
 void password_generator(){
@@ -108,13 +163,16 @@ void decrypter() {
 }
 
 int authorize(){ //Tier 2+ level Security
-    char password[50];
     char key[100];
+    char password[50];
     printf("Please Enter the password:- ");
     fgets(password,50,stdin);
     password[strcspn(password, "\n")] = '\0'; // since password = kartik/n it strips down the /n
     printf("Please Give the key:- ");
     fgets(key,100,stdin);
+    for(int i = 0 ; i<strlen(key) ; i++){
+        global_key[i] = key[i];
+    }
     FILE *fp = fopen("encrypted_password.txt","r");//File open
     if(fp == NULL){
         printf("Error:- No File Found");
@@ -145,6 +203,62 @@ int authorize(){ //Tier 2+ level Security
         }
     }
     return !(strcmp(decrypted,password));
+}
+
+void add_database() {
+    credential out;
+    // Clear any leftover newline in buffer
+    while (getchar() != '\n');
+
+    printf("Please Enter the Domain of the site: ");
+    take(out.domain, sizeof(out.domain));
+    
+    printf("Please Enter the Username: ");
+    take(out.username, sizeof(out.username));
+    
+    printf("Please Enter the Password: ");
+    take(out.password, sizeof(out.password));
+    
+    // To Make sure key is available
+    if (strlen(global_key) == 0) {
+        printf("Error: Encryption key not set. Please enter key first: ");
+        take(global_key, sizeof(global_key));
+    }
+
+    int key_length = strlen(global_key);
+    int length_pass = strlen(out.password);
+    int j = 0, i = 0;
+    char temp;
+    int num = 0;
+    
+    // Encrypt the password using the key
+    while (i < length_pass) {
+        if (j >= key_length) j = 0;
+        if (global_key[j] >= '0' && global_key[j] <= '9') {
+            num = num * 10 + (global_key[j] - '0');
+            j++;
+        }
+        else if (global_key[j] == '-' || j == key_length - 1) {
+            out.password[i] = out.password[i] ^ num;
+            num = 0;
+            i++;
+            j++;
+        }
+        else {
+            j++; // Skip invalid key characters
+        }
+    }
+    
+    // Save to file
+    FILE *fp = fopen("database.txt", "a");
+    if (fp == NULL) {
+        printf("Error opening database file\n");
+        exit(1);
+    }
+    fprintf(fp, "%s%c%s%c%s\n", out.domain,SEP,out.username,SEP,out.password);//used ascii 31 as separators
+    fclose(fp);
+    
+    printf("Credentials added to database successfully!\n");
 }
 
 void save(char encrypted[] , char key[]){
@@ -217,29 +331,32 @@ void encrypter() {
 }
 
 int main(){
-    printf("Enter Admin mode? y/n ");
+    printf("Enter Admin mode? (y/n) ");
     char temp;
     scanf("%c",&temp);
     getchar();
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\nACCESS GRANTED\n");
-            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n");
+            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
             else if(resp == 2) decrypter();
             else if(resp == 3) password_generator();
+            else if(resp == 4) password_strength();
+            else if(resp == 5) add_database();
         }
         else{
             printf("\nACCESS DENIED");
         }
     }
     else{
-        printf("Enter the number\n1) Decrypt Secret Messages\n");
+        printf("Enter the number\n 1) Decrypt Secret Messages\n 2) Password Strength Teller\n");
         int resp;
         scanf("%d",&resp);
         if(resp == 1) decrypter();
+        else if(resp == 2) password_strength();
         else printf("Invalid response");
     }
     return 0;
