@@ -2,6 +2,82 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+
+int take(char inp[] , int n){
+    char ch; int i = 0;
+    while((ch = getchar())!='\n'){
+        if(i<n)
+            inp[i++] = ch;
+    }
+    inp[i] = '\0';
+    return i;
+}
+
+void decrypter() {
+    printf("Do you have key and text in file (y/n)? ");
+    char resp;
+    scanf(" %c", &resp);
+    while(getchar() != '\n'); // Clear the input buffer
+
+    char key[1000] = {0};      // Initialize to zeros
+    char encrypted[500] = {0};
+    char output[500] = {0};
+
+    if(tolower(resp) == 'y') {
+        FILE *fp = fopen("key.txt", "r");
+        if(fp == NULL) {
+            printf("Error: key.txt not found\n");
+            exit(1);
+        }
+        fgets(key, sizeof(key), fp);
+        fclose(fp);   
+        FILE *fp2 = fopen("encrypted_text.txt", "r");
+        if(fp2 == NULL) {
+            printf("Error: encrypted_text.txt not found\n");
+            exit(1);
+        }
+        fgets(encrypted, sizeof(encrypted), fp2);
+        fclose(fp2);
+        // Remove newlines from file input
+        key[strcspn(key, "\n")] = '\0';
+        encrypted[strcspn(encrypted, "\n")] = '\0';
+    }
+    else {
+        printf("Please Enter the Encrypted Text: ");
+        fgets(encrypted, sizeof(encrypted), stdin);
+        encrypted[strcspn(encrypted, "\n")] = '\0';
+        
+        printf("Please Enter the Key: ");
+        fgets(key, sizeof(key), stdin);
+        key[strcspn(key, "\n")] = '\0';
+    }
+    int j = 0;
+    int num = 0;
+    int key_len = strlen(key);
+    int text_len = strlen(encrypted);
+    for(int i = 0; i <= key_len; i++) {
+        if(key[i] >= '0' && key[i] <= '9') {
+            num = num * 10 + (key[i] - '0');
+        }
+        else if(key[i] == '-' || key[i] == '\0') {
+            if(j >= text_len) {
+                printf("Error: Key is longer than encrypted text\n");
+                exit(1);
+            }
+            output[j] = encrypted[j] ^ num;
+            num = 0;
+            j++;
+        }
+        else {
+            printf("Invalid Key format\n");
+            exit(1);
+        }
+    }
+    output[j] = '\0'; // Null-terminate the string
+
+    printf("\nThe Decrypted text is: %s\n", output);
+}
 
 int authorize(){ //Tier 2+ level Security
     char password[50];
@@ -43,53 +119,99 @@ int authorize(){ //Tier 2+ level Security
     return !(strcmp(decrypted,password));
 }
 
+void save(char encrypted[] , char key[]){
+    FILE *fp = fopen("encrypted_text","w");
+    if(fp == NULL){
+        printf("Error in Opening file\nPlease remember the text rather");
+        exit(1);
+    }
+    fprintf(fp,encrypted);
+    fclose(fp);
+    FILE *fp2 = fopen("key.txt","w");
+    if(fp2 == NULL){
+        printf("Error in Opening file\nPlease remember the key rather");
+        exit(1);
+    }
+    fprintf(fp2,key);
+    fclose(fp2);
+    printf("Files saved Succesfully");
+}
+
 void encrypter() {
-    srand(time(0)); // seed
+    srand(time(0)); // seed with current time
 
     printf("Please enter the Text you want to encrypt\n");
     char input[500];
-    getchar(); // clear stdin
-    fgets(input, 500, stdin);
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {}
+    
+    // Get input
+    if (fgets(input, sizeof(input), stdin) == NULL) {
+        printf("Error reading input\n");
+        return;
+    }
     input[strcspn(input, "\n")] = '\0';  // remove newline
 
     int length = strlen(input);
+    if (length == 0) {
+        printf("No input provided\n");
+        return;
+    }
 
-    char encrypted[500];
-    char key[1000]; // large enough to store all keys as string
-    key[0] = '\0';  // initialize empty string
-
-    char temp_key[10];
+    char encrypted[500] = {0};  // initialize to zeros
+    char key[1000] = {0};       // initialize to zeros
+    int r;
     for (int i = 0; i < length; i++) {
-        int r = rand() % 94 + 33; // get random printable ASCII (33–126)
+        do {
+             r = rand() % 94 + 33; // r = 33-126
+            encrypted[i] = input[i] ^ r; // XOR
+        } while (encrypted[i] < 32 || encrypted[i] > 126); // Ensure encrypted[i] is printable
         encrypted[i] = input[i] ^ r; // XOR encryption
 
-        // Convert int r to string and append to key
-        sprintf(temp_key, "%d-", r);
-        strcat(key, temp_key);
+        // Build the key string
+        char num_str[10];
+        snprintf(num_str, sizeof(num_str), "%d", r); //safely storing r in num_str so that we can concaneate later
+        strcat(key, num_str);
+        
+        // Add delimiter unless it's the last character
+        if (i < length - 1) {
+            strcat(key, "-");
+        }
     }
-    encrypted[length] = '\0'; // null-terminate encrypted message
 
-    printf("The Encrypted message is: ");
-    for (int i = 0; i < length; i++) {
-        printf("%c", (encrypted[i] >= 33 && encrypted[i] <= 126) ? encrypted[i] : '.');
-    }
-    printf("\n");
-
+    printf("The Encrypted message is:- %s\n", encrypted);
     printf("The Key is: %s\n", key);
-    printf("NOTE:- KEEP THIS SAFE IN CASE IT GOT LOST CANNOT BE RECOVERED\n");
+    printf("Do you want to save this key y/n\n");
+    char resp;
+    scanf("%c",&resp);
+    if(tolower(resp) == 'y') save(encrypted,key);
+    else printf("NOTE:- IF THE KEY GET LOST IT CANNOT BE RECOVERED");
 }
-
 
 int main(){
-if(1){ //use authorize() later rn due to testing purpose
-    printf("\nACCESS GRANTED\n");
-    printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n");
-    int resp;
-    scanf("%d",&resp);
-    if(resp == 1) encrypter();
-}
-else{
-    printf("\nACCESS DENIED");
-}
-return 0;
+    printf("Enter Admin mode? y/n ");
+    char temp;
+    scanf("%c",&temp);
+    getchar();
+    if(tolower(temp) == 'y'){
+        if(authorize()){ //use authorize() later rn due to testing purpose
+            printf("\nACCESS GRANTED\n");
+            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n");
+            int resp;
+            scanf("%d",&resp);
+            if(resp == 1) encrypter();
+            else if(resp == 2) decrypter();
+        }
+        else{
+            printf("\nACCESS DENIED");
+        }
+    }
+    else{
+        printf("Enter the number\n1) Decrypt Secret Messages\n");
+        int resp;
+        scanf("%d",&resp);
+        if(resp == 1) decrypter();
+        else printf("Invalid response");
+    }
+    return 0;
 }
