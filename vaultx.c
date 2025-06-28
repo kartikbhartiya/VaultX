@@ -14,6 +14,34 @@ int take(char inp[] , int n){
     return i;
 }
 
+void password_generator(){
+    srand(time(0)); //Seeding the RNG with current time
+    int length = rand()%9 + 8; //length of password will be 8 to 15
+    char pass[16] = {0};
+    char temp;int temp1;
+    for(int i = 0 ; i<length ; i++){
+        temp1 = rand();//decide wether the character will be number/special character/letter/capital letter
+        if(temp1%4 == 0){
+            temp = rand()%10 + 48; //Number characters
+        }
+        else if(temp1%4 == 1){
+            temp = rand()%26 + 65; //Upper case
+        }
+        else if(temp1%4 == 2){ //Special character
+            temp1 = rand();
+            if(temp1%4 == 0) temp = rand()%15 + 33;
+            else if(temp1%4 == 1) temp = rand()%7 + 58;
+            else if(temp1%4 == 2) temp = rand()%6 + 91;
+            else temp = rand()%4 + 123;
+        }
+        else{
+            temp = rand()%26 + 97; //lower case
+        }
+        pass[i] = temp;
+    }
+    printf("Your password is :- %s",pass);
+}
+
 void decrypter() {
     printf("Do you have key and text in file (y/n)? ");
     char resp;
@@ -120,7 +148,7 @@ int authorize(){ //Tier 2+ level Security
 }
 
 void save(char encrypted[] , char key[]){
-    FILE *fp = fopen("encrypted_text","w");
+    FILE *fp = fopen("encrypted_text.txt","w");
     if(fp == NULL){
         printf("Error in Opening file\nPlease remember the text rather");
         exit(1);
@@ -196,11 +224,12 @@ int main(){
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\nACCESS GRANTED\n");
-            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n");
+            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
             else if(resp == 2) decrypter();
+            else if(resp == 3) password_generator();
         }
         else{
             printf("\nACCESS DENIED");
