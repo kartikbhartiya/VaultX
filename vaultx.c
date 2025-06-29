@@ -22,7 +22,146 @@ int take(char inp[] , int n){
     inp[i] = '\0';
     return i;
 }
+void add_database() {
+    credential out;
+    while (getchar() != '\n');
+    printf("Please Enter the Domain of the site: ");
+    take(out.domain, sizeof(out.domain));
+    printf("Please Enter the Username: ");
+    take(out.username, sizeof(out.username));
+    printf("Please Enter the Password: ");
+    take(out.password, sizeof(out.password));
+    // To Make sure key is available
+    if (strlen(global_key) == 0) {
+        printf("ACCESS DENIED:- CODE IS TAMPERED");
+        exit(1);
+    }
+    // First, parse the key into an array of numbers
+    int key_numbers[100];int key_count = 0;
+    int current_num = 0;
+    int has_digit = 0;
+    for(int i = 0; i < strlen(global_key); i++) {
+        if(isdigit(global_key[i])) {
+            current_num = current_num * 10 + (global_key[i] - '0');
+            has_digit = 1;//In case key has no no digit
+        } else if(global_key[i] == '-' || global_key[i] == '\0') {
+            if(has_digit) {
+                key_numbers[key_count++] = current_num;
+                current_num = 0;
+                has_digit = 0;
+            }
+        }
+    }
+    if(has_digit) {
+        key_numbers[key_count++] = current_num;//if last digit is -
+    }
+    
+    if(key_count == 0) {
+        printf("Error: Key contains no valid numbers\n");
+        return;
+    }
 
+    // Encrypt all fields using the same key sequence
+    int key_index = 0;
+    
+    // Encrypt domain
+    for(int i = 0; i < strlen(out.domain); i++) {
+        out.domain[i] = out.domain[i] ^ key_numbers[key_index];
+        key_index = (key_index + 1) % key_count;//because if length of out.domain is bigger than key so it will reset key to 0
+    }
+    
+    // Encrypt username
+    for(int i = 0; i < strlen(out.username); i++) {
+        out.username[i] = out.username[i] ^ key_numbers[key_index];
+        key_index = (key_index + 1) % key_count;
+    }
+    
+    // Encrypt password
+    for(int i = 0; i < strlen(out.password); i++) {
+        out.password[i] = out.password[i] ^ key_numbers[key_index];
+        key_index = (key_index + 1) % key_count;
+    }
+    
+    // Save to file
+    FILE *fp = fopen("database.txt", "a");
+    if (fp == NULL) {
+        printf("Error opening database file\n");
+        exit(1);
+    }
+    fprintf(fp, "%s%c%s%c%s\n", out.domain, SEP, out.username, SEP, out.password);
+    fclose(fp);
+    
+    printf("Credentials added to database successfully!\n");
+}
+
+void fetch_database() {
+    FILE *fp = fopen("database.txt", "r");
+    if(fp == NULL) {
+        printf("Error: Cannot open database file\n");
+        exit(1);
+    }
+
+    if(strlen(global_key) == 0) {
+        printf("Error: No decryption key provided\n");
+        fclose(fp);
+        return;
+    }
+
+    printf("\n--- Decrypted Credentials ---\n");
+    
+    // First, parse the key into an array of numbers
+    int key_numbers[100];
+    int key_count = 0;
+    int current_num = 0;
+    int has_digit = 0;
+    
+    for(int i = 0; i < strlen(global_key); i++) {
+        if(isdigit(global_key[i])) {
+            current_num = current_num * 10 + (global_key[i] - '0');
+            has_digit = 1;
+        } else if(global_key[i] == '-' || global_key[i] == '\0') {
+            if(has_digit) {
+                key_numbers[key_count++] = current_num;
+                current_num = 0;
+                has_digit = 0;
+            }
+        }
+    }
+    if(has_digit) {
+        key_numbers[key_count++] = current_num;
+    }
+    
+    if(key_count == 0) {
+        printf("Error: Key contains no valid numbers\n");
+        fclose(fp);
+        return;
+    }
+    
+    // Now process the file line by line
+    char line[1000];
+    while(fgets(line, sizeof(line), fp) != NULL) {//parses one line
+        // Remove newline if present
+        line[strcspn(line, "\n")] = '\0';
+        // Decrypt each character in the line (except separators)
+        int key_index = 0;
+        for(int i = 0; i < strlen(line); i++) {
+            if(line[i] == SEP) {
+                printf(" | ");
+                continue;
+            }
+            
+            // Decrypt the character
+            printf("%c", line[i] ^ key_numbers[key_index]);
+            
+            // Move to next key number, wrap around if needed
+            key_index = (key_index + 1) % key_count; //so that key cycles back to 0 if key_index+1 > key_count
+        }
+        printf("\n");
+    }
+    
+    fclose(fp);
+    printf("----------------------------\n");
+}
 void password_strength(){
     char pass[500] = {0};
     printf("Please enter the password:- ");
@@ -205,62 +344,6 @@ int authorize(){ //Tier 2+ level Security
     return !(strcmp(decrypted,password));
 }
 
-void add_database() {
-    credential out;
-    // Clear any leftover newline in buffer
-    while (getchar() != '\n');
-
-    printf("Please Enter the Domain of the site: ");
-    take(out.domain, sizeof(out.domain));
-    
-    printf("Please Enter the Username: ");
-    take(out.username, sizeof(out.username));
-    
-    printf("Please Enter the Password: ");
-    take(out.password, sizeof(out.password));
-    
-    // To Make sure key is available
-    if (strlen(global_key) == 0) {
-        printf("Error: Encryption key not set. Please enter key first: ");
-        take(global_key, sizeof(global_key));
-    }
-
-    int key_length = strlen(global_key);
-    int length_pass = strlen(out.password);
-    int j = 0, i = 0;
-    char temp;
-    int num = 0;
-    
-    // Encrypt the password using the key
-    while (i < length_pass) {
-        if (j >= key_length) j = 0;
-        if (global_key[j] >= '0' && global_key[j] <= '9') {
-            num = num * 10 + (global_key[j] - '0');
-            j++;
-        }
-        else if (global_key[j] == '-' || j == key_length - 1) {
-            out.password[i] = out.password[i] ^ num;
-            num = 0;
-            i++;
-            j++;
-        }
-        else {
-            j++; // Skip invalid key characters
-        }
-    }
-    
-    // Save to file
-    FILE *fp = fopen("database.txt", "a");
-    if (fp == NULL) {
-        printf("Error opening database file\n");
-        exit(1);
-    }
-    fprintf(fp, "%s%c%s%c%s\n", out.domain,SEP,out.username,SEP,out.password);//used ascii 31 as separators
-    fclose(fp);
-    
-    printf("Credentials added to database successfully!\n");
-}
-
 void save(char encrypted[] , char key[]){
     FILE *fp = fopen("encrypted_text.txt","w");
     if(fp == NULL){
@@ -338,7 +421,7 @@ int main(){
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\nACCESS GRANTED\n");
-            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n");
+            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
@@ -346,13 +429,14 @@ int main(){
             else if(resp == 3) password_generator();
             else if(resp == 4) password_strength();
             else if(resp == 5) add_database();
+            else if(resp == 6) fetch_database();
         }
         else{
             printf("\nACCESS DENIED");
         }
     }
     else{
-        printf("Enter the number\n 1) Decrypt Secret Messages\n 2) Password Strength Teller\n");
+        printf("Enter the number\n 1) Decrypt Secret Messages\n 2) Password Strength Teller\n Please Enter Your Response:- ");
         int resp;
         scanf("%d",&resp);
         if(resp == 1) decrypter();
