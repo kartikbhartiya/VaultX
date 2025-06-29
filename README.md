@@ -1,74 +1,108 @@
-# 🔐 VaultX - Secure Message & Password Vault (In Development)
+# 🔐 VaultX - Secure Message & Password Vault
 
-VaultX is a modular command-line tool built in C, designed for secure local encryption of secret messages and  password management(soon). It's lightweight, file-based, and built from scratch — no external libs, no gimmicks. Just pure logic, bitwise operations, and control.
-
-Still in active development.
+**VaultX** is a modular, offline, command-line tool built in pure C.  
+It’s designed for secure local encryption of secret messages and password management.  
+No libraries. No dependencies. Only logic, XOR, and control.
 
 ---
 
-## ✅ Current Features
+## ✅ Features
 
 ### 🔑 Admin Authentication
-- XOR-encrypted password storage (`encrypted_password.txt`)
-- Key-based access using structured keys like `91-42-76-...`
-- Admin-only access to encryption features
+- XOR-encrypted password stored in `encrypted_password.txt`
+- Requires both a valid password and a session-based XOR key (`e.g., 1-3-5-79-57-2`)
+- Unauthorized access or code tampering is automatically blocked
+- Removal or bypass of `authorize()` will trigger protection: system detects no `global_key` and halts
 
 ### 📄 Secret Message Encryption
-- Input your message
-- Generates a strong printable ASCII key
-- XOR-encrypts each character with a unique value
-- Option to encrypted text and key to `encrypted_text.txt` and `key.txt`
-- Decryption requires both encrypted file and exact key
+- Input any message and generate a secure XOR key (ASCII 33–126 only)
+- Encrypts each character with a unique, printable number
+- Optionally saves encrypted message and key to `encrypted_text.txt` and `key.txt`
 
 ### 🔓 Decryption Module
-- Decrypt via file input or manual entry
-- Handles invalid input, malformed keys, and wrong lengths
-- Fail-safe if decryption logic breaks due to wrong inputs
+- Decrypt from file or manual input
+- Validates input, format, and structure
+- Invalid keys result in garbage output, not decrypted text
+- Anti-hacking logic ensures only session-matched key works
+
+### 🧾 Password Manager (Working Phase)
+- Add domain, username, password entries securely to `database.txt`
+- Encryption uses session key from admin login — unique per session
+- Viewing stored passwords also requires the same session key
+
+### 📊 Password Strength Checker
+- Checks character diversity:
+  - Lowercase
+  - Uppercase
+  - Numbers
+  - Special Characters
+- Rejects passwords with unsafe characters
+- Flags weak or unsafe passwords
+
+### 🧠 Password Generator
+- Generates passwords between 8 to 15 characters
+- Includes all character types (A-Z, a-z, 0-9, special chars)
+- Ensures strong entropy and printable format
 
 ---
 
-## ⚙️ Upcoming Features (WIP)
+## ⚔️ Security Design
 
-- 🧾 **Password Manager**
-  - Add/view/delete entries
-  - Data stored in binary file (`vault.dat`)
-  - Only decrypted in memory during active session
+### ❗ XOR ≠ Insecure — When Done Right
 
-- 📊 **Password Strength Checker**
-  - Checks password entropy and structure
-  - Flags weak or guessable entries before storing
+Even though XOR is mathematically reversible (`x ^ y = z`, so `z ^ y = x`), VaultX adds powerful protection:
 
-- 🛡️ **Audit Logging**
-  - Logs all access attempts, encryption, deletions
+- 🔁 **Session-Based Keying**  
+  All encryption/decryption happens only under the admin session key. This means:
+  - If you don’t have the original key used when data was saved
+  - You will get **garbage** output even with full source access
 
-- 💣 **Secure Shred**
-  - Option to securely erase saved files (overwrite before delete)
+- 🧠 **XOR Ambiguity**  
+  `x ^ y = 'j'` has **many combinations**, but the correct one is unknowable without the original `y`.
+
+- 🧱 **Tamper-Proof Logic**  
+  - If someone removes or disables `authorize()`:
+    - `global_key` will remain empty
+    - The system treats it as a tampering attempt
+    - All attempts to read or decrypt will be denied or return garbage
+
+- 🧊 **No Admin = No Decryption**  
+  Even if attacker logs in with altered code, without the correct key:
+  - They become a *dummy admin*
+  - No real credentials can be decrypted
+  - The system still behaves, but doesn’t reveal real data
+
+> ✅ **Without the correct session key, VaultX doesn’t just fail — it logically misleads.**
 
 ---
 
-# How to Run
+## 🛠️ How to Run
 
 ```bash
 gcc vaultx.c -o vaultx.exe
 ```
 ```bash
-.\vaultx
+./vaultx.exe
 ```
+
 ---
 
-# Admin Credentials
-
+## Default Admin Credentials
 ```bash
-password:- kartik
-key:- 1-3-5-79-57-2
+Password: kartik
+Key:      1-3-5-79-57-2
 ```
----
+
 ## ❗ Disclaimer
 
-VaultX uses XOR logic — strong for local file security and educational purposes, but **not equivalent to AES or industry-grade crypto**.  
-That said, it’s safer than plain text, smarter than fake hashing, and fully offline.
+VaultX uses XOR-based encryption — safe for local, offline, educational use.  
+This is **not equivalent to AES/RSA** and is **not suitable for high-security environments**.
 
-> ⚠️ If you lose your key, the message is gone. No backdoors. No resets. This is by design.
+- ✅ **Stronger** than plain text or base64  
+- 🧠 **Smarter** than fake hash-based checks  
+- 🔒 **Totally offline**, tamper-detecting, and educational  
+
+> ⚠️ If you lose your key, your data is **gone forever**. No resets. No backdoors.
 
 ---
 
@@ -80,8 +114,8 @@ That said, it’s safer than plain text, smarter than fake hashing, and fully of
 
 ---
 
-## 💬 Notes
+## 📈 Coming Soon
 
-- This is an ongoing personal project.
-- VaultX is built to evolve — more features will be added over time.
-- Contributions — None.
+- 🧹 Entry deletion and secure file shredder  
+- 📜 Access logs for admin operations  
+- 🖥️ UI upgrade (GUI)
