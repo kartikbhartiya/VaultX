@@ -421,7 +421,8 @@ int main(){
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\nACCESS GRANTED\n");
-            printf("Please Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n Please Enter Your Response:- ");
+            while(1){
+            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) End The Current Session\n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
@@ -430,6 +431,8 @@ int main(){
             else if(resp == 4) password_strength();
             else if(resp == 5) add_database();
             else if(resp == 6) fetch_database();
+            else break;
+            }
         }
         else{
             printf("\nACCESS DENIED");
