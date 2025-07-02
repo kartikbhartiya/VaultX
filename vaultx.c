@@ -6,6 +6,7 @@
 #define SEP 0x1F
 
 char global_key[100] = {0};
+int search(char*);
 
 typedef struct{
     char domain[500];
@@ -306,7 +307,7 @@ int authorize(){ //Tier 2+ level Security
     char password[50];
     printf("Please Enter the password:- ");
     fgets(password,50,stdin);
-    password[strcspn(password, "\n")] = '\0'; // since password = kartik/n it strips down the /n
+    password[strcspn(password, "\n")] = '\0'; // since password = xyz/n(for) it strips down the /n
     printf("Please Give the key:- ");
     fgets(key,100,stdin);
     for(int i = 0 ; i<strlen(key) ; i++){
@@ -422,7 +423,7 @@ int main(){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\nACCESS GRANTED\n");
             while(1){
-            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) End The Current Session\n Please Enter Your Response:- ");
+            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) End The Current Session\n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
@@ -431,6 +432,7 @@ int main(){
             else if(resp == 4) password_strength();
             else if(resp == 5) add_database();
             else if(resp == 6) fetch_database();
+            else if(resp == 7) search(global_key);
             else break;
             }
         }
