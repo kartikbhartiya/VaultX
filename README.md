@@ -93,7 +93,7 @@ Even though XOR is mathematically reversible (`x ^ y = z`, so `z ^ y = x`), Vaul
 ## 🛠️ How to Run
 
 ```bash
-gcc vaultx.c -o vaultx.exe
+gcc vaultx.c search.c -o vaultx.exe
 ```
 ```bash
 ./vaultx.exe
