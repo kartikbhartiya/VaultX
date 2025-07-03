@@ -222,6 +222,53 @@ void password_strength(){
     }
 }
 
+void change(){
+    printf("\nNOTE:- IF YOU CHANGE PASSWORRD ALL OF YOU THE PASSWORD DATABASE WILL BE DELETED");
+    printf("\n Press Ctrl + C to Return Safely\n");
+    getchar();
+    char key[100] = {0};
+    char user[50] = {0};
+    printf("Please Enter the Username:- ");
+    take(user,50);
+    printf("Please Enter the Key(xxx-xxx-xxx... format):- ");
+    take(key,100);
+    for(int i = 0 ; i<strlen(key);i++){
+        if(!(isdigit(key[i]) || key[i] == '-')){
+            printf("Incorrect Key Format - Password change unsuccesful");
+            exit(1);
+        }
+    }
+    int key_length = strlen(key);
+    char encrypted[50];int j=0;int count = 0;int num = 0 ; char temp;
+    for(int i = 0 ; i<key_length ; i++){
+        if(key[i]>='0' && key[i]<='9'){
+            num = num*10 + (key[i] - '0'); //form a number out of characters of key[i] until a ',' is found
+        }
+        if(key[i] == '-' || i == key_length-1){ //either ',' or if its the last character
+            temp = (char)(user[j]^num);
+            user[j] = temp; //stores the char into another string after decrypting
+            num = 0;
+            j++;
+        }
+        count++;
+    }
+    if(count!=strlen(key)){
+        printf("%d %d\n",count,strlen(key));
+        printf("Wrong Format in Entering Key and Password");
+        exit(1);
+    }
+    FILE *fp = fopen("encrypted_password.txt","w");
+    fputs(user,fp);
+    FILE *fp2 = fopen("database.txt","w");
+    fputs("",fp2);
+    fclose(fp);
+    fclose(fp2);
+    for(int i = 0 ; i<strlen(key) ; i++){
+        global_key[i] = key[i];
+    }
+    printf("\nChanges Made Successful\n");
+}
+
 void password_generator(){
     srand(time(0)); //Seeding the RNG with current time
     int length = rand()%9 + 8; //length of password will be 8 to 15
@@ -437,7 +484,7 @@ int main(){
             printf("\n==============\nACCESS GRANTED\n==============\n");
             while(1){
             audit_log("ADMIN");
-            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) Delete Data Entry \n 9) End The Current Session\n Please Enter Your Response:- ");
+            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) Delete Data Entry \n 9) Change Password\n 10) End The Current Session \n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
@@ -448,6 +495,7 @@ int main(){
             else if(resp == 6) fetch_database();
             else if(resp == 7) search(global_key);
             else if(resp == 8) delete_database(global_key);
+            else if(resp == 9) change();
             else break;
             }
         }
