@@ -7,6 +7,8 @@
 
 char global_key[100] = {0};
 int search(char*);
+void delete_database(char*);
+//void get_loc(char*);
 
 typedef struct{
     char domain[500];
@@ -163,6 +165,17 @@ void fetch_database() {
     fclose(fp);
     printf("----------------------------\n");
 }
+
+void audit_log(char* status){
+    FILE *fp = fopen("logs.txt","a");
+    if(fp == NULL){
+        printf("ERROR : Cant Open Logs File");
+        exit(1);
+    }
+    fprintf(fp,"%s   %s   %s\n",__DATE__,__TIME__,status);
+    fclose(fp);
+}
+
 void password_strength(){
     char pass[500] = {0};
     printf("Please enter the password:- ");
@@ -415,15 +428,16 @@ void encrypter() {
 }
 
 int main(){
-    printf("Enter Admin mode? (y/n) ");
+    printf("Enter Admin mode? (y/n):- ");
     char temp;
     scanf("%c",&temp);
     getchar();
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
-            printf("\nACCESS GRANTED\n");
+            printf("\n==============\nACCESS GRANTED\n==============\n");
             while(1){
-            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) End The Current Session\n Please Enter Your Response:- ");
+            audit_log("ADMIN");
+            printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) Delete Data Entry \n 9) End The Current Session\n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
             if(resp == 1) encrypter();
@@ -433,20 +447,23 @@ int main(){
             else if(resp == 5) add_database();
             else if(resp == 6) fetch_database();
             else if(resp == 7) search(global_key);
+            else if(resp == 8) delete_database(global_key);
             else break;
             }
         }
         else{
-            printf("\nACCESS DENIED");
+            printf("\n=============\nACCESS DENIED\n=============\n");
+            audit_log("INTRUDER");
         }
     }
     else{
-        printf("Enter the number\n 1) Decrypt Secret Messages\n 2) Password Strength Teller\n Please Enter Your Response:- ");
+        audit_log("USER");
+        printf("Enter the number\n 1) Decrypt Secret Messages\n 2) Password Strength Teller\n 3) Exit\n Please Enter Your Response:- ");
         int resp;
         scanf("%d",&resp);
         if(resp == 1) decrypter();
         else if(resp == 2) password_strength();
-        else printf("Invalid response");
+        else ;
     }
     return 0;
 }
