@@ -33,7 +33,7 @@ It's designed to simulate real-world security constraints, expose the logic behi
 - Invalid keys result in garbage output, not decrypted text
 - Anti-hacking logic ensures only session-matched key works
 
-### 🧾 Password Manager (Working Phase)
+### 🧾 Password Manager 
 - Add domain, username, password entries securely to `database.txt`
 - Encryption uses session key from admin login — unique per session
 - Viewing stored passwords also requires the same session key
@@ -93,7 +93,7 @@ Even though XOR is mathematically reversible (`x ^ y = z`, so `z ^ y = x`), Vaul
 ## 🛠️ How to Run
 
 ```bash
-gcc vaultx.c search.c -o vaultx.exe
+gcc vaultx.c search.c delete_database.c -o vaultx.exe
 ```
 ```bash
 ./vaultx
@@ -130,8 +130,6 @@ Key:      1-3-5-79-57-2
 
 ## 📈 Coming Soon
 
-- 🧹 Entry deletion and secure file shredder  
-- 📜 Access logs for admin operations  
 - 🖥️ UI upgrade (GUI)
 
 
