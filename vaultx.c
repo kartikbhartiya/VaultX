@@ -104,6 +104,7 @@ void fetch_database() {
     int current_num = 0;
     int has_digit = 0;
     
+
     for(int i = 0; i < strlen(global_key); i++) {
         if(isdigit(global_key[i])) {
             current_num = current_num * 10 + (global_key[i] - '0');
@@ -391,17 +392,27 @@ int authorize(){ //Tier 2+ level Security
     char temp;
     char decrypted[50];
     int count = 0;
+    int continous = 0;
     for(int i = 0 ; i<key_length ; i++){
         if(key[i]>='0' && key[i]<='9'){
             num = num*10 + (key[i] - '0'); //form a number out of characters of key[i] until a ',' is found
             count++;
+            continous = 0;
         }
-        if(count>strlen(key)) printf("Bug code 1\n");
-        if(key[i] == '-' || i == key_length-1){ //either ',' or if its the last character
+        else if(key[i] == '-' || i == key_length-1){ //either ',' or if its the last character
             temp = (char)(encrypted[j]^num);
             decrypted[j] = temp; //stores the char into another string after decrypting
             num = 0;
             j++;
+            continous++;
+        }
+        else{
+            printf("Please Enter Correct Key");
+            return 0;
+        }
+        if(continous>1){
+            printf("Please Enter correct Key");
+            return 0;
         }
     }
     return !(strcmp(decrypted,password));
