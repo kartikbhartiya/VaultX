@@ -4,15 +4,14 @@
 #include <time.h>
 #include <ctype.h>
 #define SEP 0x1F
-
 char global_key[100] = {0};
 int search(char*);
 void delete_database(char*);
-//void get_loc(char*);
+
 
 typedef struct{
     char domain[500];
-    char username[100];
+    char username[100]; 
     char password[50]; //Encrypted
 }credential;
 
@@ -64,25 +63,12 @@ void add_database() {
         return;
     }
 
-    // Encrypt all fields using the same key sequence
     int key_index = 0;
-    
-    // Encrypt domain
-    for(int i = 0; i < strlen(out.domain); i++) {
-        out.domain[i] = out.domain[i] ^ key_numbers[key_index];
-        key_index = (key_index + 1) % key_count;//because if length of out.domain is bigger than key so it will reset key to 0
-    }
-    
-    // Encrypt username
-    for(int i = 0; i < strlen(out.username); i++) {
-        out.username[i] = out.username[i] ^ key_numbers[key_index];
-        key_index = (key_index + 1) % key_count;
-    }
     
     // Encrypt password
     for(int i = 0; i < strlen(out.password); i++) {
         out.password[i] = out.password[i] ^ key_numbers[key_index];
-        key_index = (key_index + 1) % key_count;
+        key_index = (key_index + 1) % key_count; //In case the password is greater than the key length
     }
     
     // Save to file
@@ -139,25 +125,29 @@ void fetch_database() {
         fclose(fp);
         return;
     }
-    
+    int key_index = 0;
     // Now process the file line by line
-    char line[1000];
+    char line[1000];int count_sep = 0;
     while(fgets(line, sizeof(line), fp) != NULL) {//parses one line
         // Remove newline if present
         line[strcspn(line, "\n")] = '\0';
         // Decrypt each character in the line (except separators)
-        int key_index = 0;
+        key_index = 0; count_sep = 0; //reinitialization
         for(int i = 0; i < strlen(line); i++) {
             if(line[i] == SEP) {
                 printf(" | ");
+                count_sep++;
                 continue;
             }
             
             // Decrypt the character
-            printf("%c", line[i] ^ key_numbers[key_index]);
+            if(count_sep>1){ 
+                printf("%c", line[i] ^ key_numbers[key_index]);
+                key_index = (key_index + 1) % key_count; //so that key cycles back to 0 if key_index+1 > key_count
+            }
+            else printf("%c",line[i]);
             
             // Move to next key number, wrap around if needed
-            key_index = (key_index + 1) % key_count; //so that key cycles back to 0 if key_index+1 > key_count
         }
         printf("\n");
     }
