@@ -162,7 +162,19 @@ void audit_log(char* status){
         printf("ERROR : Cant Open Logs File");
         exit(1);
     }
-    fprintf(fp,"%s   %s   %s\n",__DATE__,__TIME__,status);
+    time_t now = time(NULL);
+    if (now == -1) {
+        perror("time error");
+        exit(1);
+    }
+    struct tm *local = localtime(&now); 
+    if (!local) {
+        perror("localtime error\n");
+        exit(1);
+    }
+    fprintf(fp,"%02d/%02d/%04d   %02d:%02d:%02d   %s\n",
+    local->tm_mday, local->tm_mon+1, local->tm_year+1900,
+    local->tm_hour, local->tm_min, local->tm_sec, status);
     fclose(fp);
 }
 
@@ -472,8 +484,8 @@ int main(){
     if(tolower(temp) == 'y'){
         if(authorize()){ //use authorize() later rn due to testing purpose
             printf("\n==============\nACCESS GRANTED\n==============\n");
-            while(1){
             audit_log("ADMIN");
+            while(1){
             printf("\nPlease Select any option\n 1) Secret Message Encrypter\n 2) Secret Message Decrypter\n 3) Password Generator\n 4) Password Strength Teller\n 5) Add to Database\n 6) Show all Stored Passwords\n 7) Search Database\n 8) Delete Data Entry \n 9) Change Password\n 10) End The Current Session \n Please Enter Your Response:- ");
             int resp;
             scanf("%d",&resp);
