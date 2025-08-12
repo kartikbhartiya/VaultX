@@ -47,7 +47,7 @@ int get_loc(char *global_key) {
         c = fgetc(fp);
         if(c == EOF) break; //breaks the inf loop
 
-        if(c == '\x1F') { //Separator used
+        if(c == '\x1F') { 
             arr[i][field][pos] = '\0';
             field++;
             pos = 0;
@@ -62,11 +62,14 @@ int get_loc(char *global_key) {
             count = 0;  // RESET COUNT FOR NEW RECORD
             continue;
         }
-
+        
         // Decrypt the character
-        arr[i][field][pos] = c ^ key[count % no];
+        if(field>1){
+            arr[i][field][pos] = c ^ key[count % no];
+            count++;
+        }
+        else arr[i][field][pos] = c;
         pos++;
-        count++;
     }
     fclose(fp);
 
@@ -114,7 +117,6 @@ void delete_database(char *global_key){
     if(fp1 == NULL || fp == NULL){
         printf("ERROR IN OPENING FILES");
     }
-    printf("%d\n",line_delete);
     char ch[800];int count = 0;
     while(fgets(ch, sizeof(ch), fp) != NULL) {  // Proper EOF check
     if(count != line_delete) {
