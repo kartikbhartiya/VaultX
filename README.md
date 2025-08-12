@@ -128,8 +128,4 @@ Key:      1-3-5-79-57-2
 
 ---
 
-## 📈 Coming Soon
-
-- 🖥️ UI upgrade (GUI)
-
 
