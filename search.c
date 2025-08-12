@@ -15,7 +15,7 @@ int search(char *global_key) {
     int key[50] = {0};
     int key_length = strlen(global_key);
     if(key_length == 0) {
-        printf("Error: Unable to Fetch Key");
+        printf("Error: Code was Tampered");
         fclose(fp);
         return 0;
     }
@@ -38,7 +38,7 @@ int search(char *global_key) {
     }
 
     // Read and decrypt the database
-    char arr[1000][3][500] = {0};
+    char arr[1000][3][500] = {0}; //arr[max lines][max colums][max character of each element of matrix]
     int i = 0, count = 0;
     char c;
     int field = 0, pos = 0;
@@ -64,9 +64,12 @@ int search(char *global_key) {
         }
 
         // Decrypt the character
-        arr[i][field][pos] = c ^ key[count % no];
+        if(field>1){
+            arr[i][field][pos] = c ^ key[count % no];
+            count++;
+        }
+        else arr[i][field][pos] = c;
         pos++;
-        count++;
     }
     fclose(fp);
 
