@@ -128,10 +128,6 @@ Key:      1-3-5-79-57-2
 
 ---
 
-## 📈 Coming Soon
 
-- 🧹 Entry deletion and secure file shredder  
-- 📜 Access logs for admin operations  
-- 🖥️ UI upgrade (GUI)
 
 
