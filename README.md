@@ -9,7 +9,7 @@
 
 **A modular, offline, command-line security vault built in pure C**
 
-*Zero dependencies • Tamper-proof • Educational • Production-ready*
+*Zero dependencies • Tamper-proof • Educational •*
 
 </div>
 
@@ -186,7 +186,7 @@ Admin Password: kartik
 Session Key: 1-3-5-79-57-2
 ```
 
-> ⚠️ **Security Note**: Change default credentials immediately in production use
+> ⚠️ **Security Note**: Change default credentials immediately 
 
 ---
 
