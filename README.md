@@ -105,11 +105,15 @@ Protection:
 ```mermaid
 graph TD
     A[User Access] --> B{Admin Auth}
+    A --> Y{Non-Admin}
     B -->|Success| C[Session Key Generated]
     B -->|Failure| D[Access Denied]
     C --> E[Encrypted Operations]
+    E --> K[Diffrent Combination than Orignal]
+    K --> X[Creates Dummy Admin]
     E --> F{Tamper Check}
     F -->|Clean| G[Data Access Granted]
+    X --> H
     F -->|Compromised| H[Garbage Output]
     
     style A fill:#e1f5fe
