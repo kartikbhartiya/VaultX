@@ -33,7 +33,7 @@
 
 ## 🎯 Overview
 
-**VaultX** is a sophisticated, zero-dependency security vault engineered in pure C, designed to demonstrate advanced encryption techniques while providing practical security solutions. Built without external libraries, it showcases how intelligent design and cryptographic principles can create robust protection systems.
+**VaultX** is a sophisticated, zero-dependency security vault engineered in pure C, designed to demonstrate advanced encryption techniques while providing practical security solutions. Built without external libraries.
 
 ### 🎪 Core Philosophy
 
@@ -43,7 +43,7 @@ VaultX proves that well-architected XOR encryption, combined with session-based 
 
 ### 🎯 Target Audience
 
-- **Security Enthusiasts** learning practical cryptography
+- **Security Enthusiasts** educational purpose about xor
 - **C Developers** interested in low-level security implementation  
 - **Students** studying encryption and access control systems
 - **Professionals** needing offline password management solutions
